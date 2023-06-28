@@ -4,10 +4,11 @@ from tkinter import filedialog
 import traceback
 import webbrowser
 
-
 def generate_file():
     try:
-        # Читаем значение из поля ввода
+        # Читаем значения из полей ввода
+        max_price = int(maxprice_entry.get())
+        sell_price = int(sellprice_entry.get())
         classnames = classnames_text.get("1.0", END).splitlines()
         
         # Создаем список для сохранения данных
@@ -17,8 +18,8 @@ def generate_file():
         for classname in classnames:
             item = {
                 "ClassName": classname.strip(),
-                "MaxPriceThreshold": 6000,
-                "MinPriceThreshold": 6000,
+                "MaxPriceThreshold": max_price,
+                "MinPriceThreshold": sell_price,
                 "SellPricePercent": -1,
                 "MaxStockThreshold": 999999999,
                 "MinStockThreshold": 1,
@@ -55,7 +56,9 @@ def generate_file():
 
 def generate_txt_file():
     try:
-        # Читаем значение из поля ввода
+        # Читаем значения из полей ввода
+        max_price = int(maxprice_entry.get())
+        sell_price = int(sellprice_entry.get())
         classnames = classnames_text.get("1.0", END).splitlines()
         
         # Открываем диалог сохранения файла
@@ -68,7 +71,7 @@ def generate_txt_file():
         with open(file_path, "w") as f:
             f.write("<Category> Escape From Tarkov\n")
             for classname in classnames:
-                f.write(f"  {classname.strip()}, *, 6000, 3000\n")
+                f.write(f"  {classname.strip()}, *, {max_price}, {sell_price}\n")
         print("Файл успешно сохранен")
     except Exception as e:
         traceback.print_exc()
@@ -77,7 +80,9 @@ def generate_txt_file():
 
 def generate_json_file():
     try:
-        # Читаем значение из поля ввода
+        # Читаем значения из полей ввода
+        max_price = int(maxprice_entry.get())
+        sell_price = int(sellprice_entry.get())
         classnames = classnames_text.get("1.0", END).splitlines()
         
         # Создаем список для сохранения данных
@@ -85,7 +90,7 @@ def generate_json_file():
         
         # Создаем элемент списка для каждого класснейма
         for classname in classnames:
-            item = f"{classname.strip()},0.92,-1,1,6000,-1,1"
+            item = f"{classname.strip()},0.92,-1,1,{max_price},-1,1"
             items.append(item)
         
         # Создаем словарь для сохранения данных
@@ -119,27 +124,45 @@ window = Tk()
 # Устанавливаем размер окна
 window.geometry("800x400")
 
+    
 # Создаем поле для ввода класснеймов
 classnames_label = Label(window, text="Classnames:", font=("Arial", 12))
 classnames_label.place(x=10, y=10)
 classnames_text = Text(window, height=15, width=50, font=("Arial", 12))
 classnames_text.place(x=10, y=30)
 
+# Создаем поля для ввода цен
+maxprice_label = Label(window, text="By price:", font=("Arial", 12))
+maxprice_label.place(x=540, y=10)
+maxprice_entry = Entry(window, font=("Arial", 12))
+maxprice_entry.place(x=540, y=30)
+sellprice_label = Label(window, text="Sell price:", font=("Arial", 12))
+sellprice_label.place(x=540, y=70)
+sellprice_entry = Entry(window, font=("Arial", 12))
+sellprice_entry.place(x=540, y=90)
+
 # Создаем кнопку для генерации файла JSON
-generate_button = Button(window, text="Expansion", command=generate_file, font=("Arial", 16))
-generate_button.place(x=540, y=80)
+generate_button = Button(window, text="Expansion Market", command=generate_file, font=("Arial", 12))
+generate_button.place(x=540, y=150)
 
-# Создаем кнопку для генерации файла txt
-txt_button = Button(window, text="Dr.Jones", command=generate_txt_file, font=("Arial", 16))
-txt_button.place(x=540, y=140)
+# Создаем кнопку для генерации файла TXT
+generate_txt_button = Button(window, text="Dr.Jones", command=generate_txt_file, font=("Arial", 12))
+generate_txt_button.place(x=540, y=190)
 
-# Создаем кнопку для генерации файла json
-json_button = Button(window, text="TraderPlus", command=generate_json_file, font=("Arial", 16))
-json_button.place(x=540, y=200)
+# Создаем кнопку для генерации файла JSON для другого сервиса
+generate_json_button = Button(window, text="Trader Plus", command=generate_json_file, font=("Arial", 12))
+generate_json_button.place(x=540, y=230)
 
-# Создаем кнопку для связи с разработчиком
-discord_button = Button(window, text="Связь с разработчиком", command=open_discord, font=("Arial", 16))
-discord_button.place(x=540, y=280)
+# Создаем кнопку для открытия ссылки на Discord-сервер
+discord_button = Button(window, text="Discord", command=open_discord, font=("Arial", 12))
+discord_button.place(x=10, y=360)
 
-# Запускаем главный цикл окна
+window.configure(bg="#1C1C1C")
+for widget in window.winfo_children():
+    widget.configure(bg="#1C1C1C", fg="#FFFFFF")
+
+# Устанавливаем название окна
+window.title("DayZ Trader Config Generator")
+
+# Запускаем главный цикл обработки событий окна
 window.mainloop()
