@@ -3,12 +3,26 @@ from tkinter import *
 from tkinter import filedialog
 import traceback
 import webbrowser
+from tkinter import ttk
+
+classnames = ""
+
+# Функция выбора папки с файлом
+def open_file():
+    global classnames
+    classnames_file = filedialog.askopenfilename(title="Select an Classnames File")
+    with open(classnames_file, "r") as f:
+        classnames = f.read()
+    classnames_text.delete("1.0", END)
+    classnames_text.insert(END, classnames)
 
 def generate_file():
     try:
         # Читаем значения из полей ввода
         max_price = int(maxprice_entry.get())
         sell_price = int(sellprice_entry.get())
+        max_stock = int(max_stock_entry.get())
+        min_stock = int(min_stock_entry.get())
         classnames = classnames_text.get("1.0", END).splitlines()
         
         # Создаем список для сохранения данных
@@ -21,8 +35,8 @@ def generate_file():
                 "MaxPriceThreshold": max_price,
                 "MinPriceThreshold": sell_price,
                 "SellPricePercent": -1,
-                "MaxStockThreshold": 999999999,
-                "MinStockThreshold": 1,
+                "MaxStockThreshold": max_stock,
+                "MinStockThreshold": min_stock,
                 "SpawnAttachments": [],
                 "Variants": []
             }
@@ -113,56 +127,207 @@ def generate_json_file():
         traceback.print_exc()
         print(f"Ошибка: {e}")
 
-
+def generate_ultima_file():
+    try:
+        # Читаем значения из полей ввода
+        max_price = int(maxprice_entry.get())
+        sell_price = int(sellprice_entry.get())
+        max_stock = int(max_stock_entry.get())
+        tradersids = int(tradersids_entry.get())
+        section = str(section_entry.get())
+        classnames = classnames_text.get("1.0", END).splitlines()
+        
+        # Создаем список для сохранения данных
+        items = []
+        
+        # Создаем элемент для каждого класснейма
+        for index in range(len(classnames)):
+            item = {
+                "m_ArrayIndex": -1,
+                "m_Section": section,
+                "m_Classname": classnames[index],
+                "m_TradersIds": [tradersids],
+                "m_IsBuy": 1,
+                "m_IsSell": 1,
+                "m_PriceBuy": max_price,
+                "m_PriceSell": sell_price,
+                "m_ReputationNeed": 0,
+                "m_ReputationCostBuy": 0,
+                "m_ReputationCostSell": 0,
+                "m_ReputationAddBuy": 0,
+                "m_ReputationAddSell": 0,
+                "m_Fraction": "-",
+                "m_Amount": max_stock,
+                "m_IsScript": 0,
+                "m_DisplayClassname": "",
+                "m_DisplaySectionName": "",
+                "m_MinAmountTo": 0,
+                "m_AmountTo": 0
+            }
+            items.append(item)       
+            # Создаем список словарей
+            data = items
+        
+        # Открываем диалог сохранения файла
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+        )
+        
+        # Записываем данные в файл
+        with open(file_path, "w") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+            print("Файл успешно сохранен")
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Ошибка: {e}")
+        
 def open_discord():
     webbrowser.open_new("https://discord.gg/Mj7tFHe8Nz")
 
 
-# Создаем окно
-window = Tk()
+# Создаем окно программы
+root = Tk()
+root.title("DayZ Trader Config Generator")
+root.configure(background="#1C1C1C")
 
-# Устанавливаем размер окна
-window.geometry("800x400")
+# Создаем виджет Notebook, в котором будут находиться вкладки
+notebook = ttk.Notebook(root)
+notebook.pack(side=RIGHT, fill=BOTH, expand=True)
 
-    
-# Создаем поле для ввода класснеймов
-classnames_label = Label(window, text="Classnames:", font=("Arial", 12))
-classnames_label.place(x=10, y=10)
-classnames_text = Text(window, height=15, width=50, font=("Arial", 12))
-classnames_text.place(x=10, y=30)
+# Создаем левую часть интерфейса с окном для класснеймов
+left_frame = Frame(root, bg="#1C1C1C")
+left_frame.pack(side=LEFT, fill=Y, pady=20, padx=20)
 
-# Создаем поля для ввода цен
-maxprice_label = Label(window, text="By price:", font=("Arial", 12))
-maxprice_label.place(x=540, y=10)
-maxprice_entry = Entry(window, font=("Arial", 12))
-maxprice_entry.place(x=540, y=30)
-sellprice_label = Label(window, text="Sell price:", font=("Arial", 12))
-sellprice_label.place(x=540, y=70)
-sellprice_entry = Entry(window, font=("Arial", 12))
-sellprice_entry.place(x=540, y=90)
+classnames_text = Text(left_frame, height=root.winfo_height()//20, width=50, font=("Arial", 12))
+classnames_text.pack(side=LEFT, padx=10, pady=10, fill=Y)
+open_file_button = Button(left_frame, text="Open Classnames File", command=open_file, font=("Arial", 12))
+open_file_button.pack(side=TOP, padx=10, pady=10)
 
-# Создаем кнопку для генерации файла JSON
-generate_button = Button(window, text="Expansion Market", command=generate_file, font=("Arial", 12))
-generate_button.place(x=540, y=150)
+# Создаем первую вкладку
+tab1 = Frame(notebook, bg="#1C1C1C")
+tab1.pack(fill=BOTH, expand=True)
 
-# Создаем кнопку для генерации файла TXT
-generate_txt_button = Button(window, text="Dr.Jones", command=generate_txt_file, font=("Arial", 12))
-generate_txt_button.place(x=540, y=190)
+maxprice_label = Label(tab1, text="Max Price Threshold:", font=("Arial", 12))
+maxprice_label.pack(side=TOP, padx=10, pady=10)
+maxprice_entry = Entry(tab1, font=("Arial", 12))
+maxprice_entry.insert(0, "0")  # устанавливаем значение по умолчанию
+maxprice_entry.pack(side=TOP, padx=10, pady=10)
 
-# Создаем кнопку для генерации файла JSON для другого сервиса
-generate_json_button = Button(window, text="Trader Plus", command=generate_json_file, font=("Arial", 12))
-generate_json_button.place(x=540, y=230)
+sellprice_label = Label(tab1, text="Min Price Threshold:", font=("Arial", 12))
+sellprice_label.pack(side=TOP, padx=10, pady=10)
+sellprice_entry = Entry(tab1, font=("Arial", 12))
+sellprice_entry.insert(0, "0")  # устанавливаем значение по умолчанию
+sellprice_entry.pack(side=TOP, padx=10, pady=10)
 
-# Создаем кнопку для открытия ссылки на Discord-сервер
-discord_button = Button(window, text="Discord", command=open_discord, font=("Arial", 12))
-discord_button.place(x=10, y=360)
+max_stock_label = Label(tab1, text="Max Stock Threshold:", font=("Arial", 12))
+max_stock_label.pack(side=TOP, padx=10, pady=10)
+max_stock_entry= Entry(tab1, font=("Arial", 12))
+max_stock_entry.insert(0, "0")
+max_stock_entry.pack(side=TOP, padx=10, pady=10)
 
-window.configure(bg="#1C1C1C")
-for widget in window.winfo_children():
-    widget.configure(bg="#1C1C1C", fg="#FFFFFF")
+min_stock_label = Label(tab1, text="Min Stock Threshold:", font=("Arial", 12))
+min_stock_label.pack(side=TOP, padx=10, pady=10)
+min_stock_entry= Entry(tab1, font=("Arial", 12))
+min_stock_entry.insert(0, "0")
+min_stock_entry.pack(side=TOP, padx=10, pady=10)
 
-# Устанавливаем название окна
-window.title("DayZ Trader Config Generator")
+generate_button = Button(tab1, text="Generate Config", command=generate_file, font=("Arial", 12))
+generate_button.pack(side=TOP, padx=10, pady=10)
 
-# Запускаем главный цикл обработки событий окна
-window.mainloop()
+
+# Создаем вторую вкладку
+tab2 = Frame(notebook, bg="#1C1C1C")
+tab2.pack(fill=BOTH, expand=True)
+
+maxprice_label_tab2 = Label(tab2, text="By price:", font=("Arial", 12))
+maxprice_label_tab2.pack(side=TOP, padx=10, pady=10)
+maxprice_entry_tab2 = Entry(tab2, font=("Arial", 12))
+maxprice_entry_tab2.insert(0, "0")  # устанавливаем значение по умолчанию
+maxprice_entry_tab2.pack(side=TOP, padx=10, pady=10)
+
+sellprice_label_tab2 = Label(tab2, text="Sell price:", font=("Arial", 12))
+sellprice_label_tab2.pack(side=TOP, padx=10, pady=10)
+sellprice_entry_tab2 = Entry(tab2, font=("Arial", 12))
+sellprice_entry_tab2.insert(0, "0")  # устанавливаем значение по умолчанию
+sellprice_entry_tab2.pack(side=TOP, padx=10, pady=10)
+
+generate_txt_button = Button(tab2, text="Generate TXT Config", command=generate_txt_file, font=("Arial", 12))
+generate_txt_button.pack(side=TOP, padx=10, pady=10)
+
+# Создаем третью вкладку
+tab3 = Frame(notebook, bg="#1C1C1C")
+tab3.pack(fill=BOTH, expand=True)
+
+maxprice_label_tab3 = Label(tab3, text="By price:", font=("Arial", 12))
+maxprice_label_tab3.pack(side=TOP, padx=10, pady=10)
+maxprice_entry_tab3 = Entry(tab3, font=("Arial", 12))
+maxprice_entry_tab3.insert(0, "0")  # устанавливаем значение по умолчанию
+maxprice_entry_tab3.pack(side=TOP, padx=10, pady=10)
+
+generate_json_button = Button(tab3, text="Generation JSON Config", command=generate_json_file, font=("Arial", 12))
+generate_json_button.pack(side=TOP, padx=10, pady=10)
+
+# Создаем четвёртую вкладку
+tab4 = Frame(notebook, bg="#1C1C1C")
+tab4.pack(fill=BOTH, expand=True)
+
+section_label = Label(tab4, text="Section:", font=("Arial", 12))
+section_label.pack(side=TOP, padx=10, pady=10)
+section_entry = Entry(tab4, font=("Arial", 12))
+section_entry.insert(0, "#STR_ULTIMA_TRADE_SECTION_FOOD")  # устанавливаем значение по умолчанию
+section_entry.pack(side=TOP, padx=10, pady=10)
+
+tradersids_label = Label(tab4, text="Traders ID:", font=("Arial", 12))
+tradersids_label.pack(side=TOP, padx=10, pady=10)
+tradersids_entry = Entry(tab4, font=("Arial", 12))
+tradersids_entry.insert(0, "0")  # устанавливаем значение по умолчанию
+tradersids_entry.pack(side=TOP, padx=10, pady=10)
+
+maxprice_label = Label(tab4, text="Price Buy:", font=("Arial", 12))
+maxprice_label.pack(side=TOP, padx=10, pady=10)
+maxprice_entry = Entry(tab4, font=("Arial", 12))
+maxprice_entry.insert(0, "0")  # устанавливаем значение по умолчанию
+maxprice_entry.pack(side=TOP, padx=10, pady=10)
+
+sellprice_label = Label(tab4, text="Price Sell:", font=("Arial", 12))
+sellprice_label.pack(side=TOP, padx=10, pady=10)
+sellprice_entry = Entry(tab4, font=("Arial", 12))
+sellprice_entry.insert(0, "0")  # устанавливаем значение по умолчанию
+sellprice_entry.pack(side=TOP, padx=10, pady=10)
+
+amount_label = Label(tab4, text="Amount:", font=("Arial", 12))
+amount_label.pack(side=TOP, padx=10, pady=10)
+amount_entry= Entry(tab4, font=("Arial", 12))
+amount_entry.insert(0, "0")
+amount_entry.pack(side=TOP, padx=10, pady=10)
+
+generate_button = Button(tab4, text="Generate Config", command=generate_ultima_file, font=("Arial", 12))
+generate_button.pack(side=TOP, padx=10, pady=10)
+
+# Добавляем вкладки в виджет Notebook
+notebook.add(tab1, text="Expansion Trader")
+notebook.add(tab2, text="Dr.Jones")
+notebook.add(tab3, text="Trader Plus")
+notebook.add(tab4, text="Ultima")
+
+# Получаем желаемую ширину правой части окна программы
+right_frame_width = max(
+    maxprice_label.winfo_reqwidth(),
+    maxprice_entry.winfo_reqwidth(),
+    sellprice_label.winfo_reqwidth(),
+    sellprice_entry.winfo_reqwidth(),
+    generate_button.winfo_reqwidth(),
+    maxprice_label_tab2.winfo_reqwidth(),
+    maxprice_entry_tab2.winfo_reqwidth(),
+    sellprice_label_tab2.winfo_reqwidth(),
+    sellprice_entry_tab2.winfo_reqwidth(),
+    generate_txt_button.winfo_reqwidth(),
+    maxprice_label_tab3.winfo_reqwidth(),
+    maxprice_entry_tab3.winfo_reqwidth(),
+    generate_json_button.winfo_reqwidth()
+)
+
+
+# Запускаем главный цикл приложения
+root.mainloop()
